@@ -76,19 +76,27 @@ public class MyServer {
     private void read(SelectionKey key) throws  IOException{
         SocketChannel socketChannel = (SocketChannel) key.channel();
         int count ;
-//        byteBuffer.clear();
+        byteBuffer.clear();
         //从通道中读数据到缓冲区
-        while((count=socketChannel.read(byteBuffer))>0){
-            //bytebuffer 写模式变为读模式
-            byteBuffer.flip();
-            while(byteBuffer.hasRemaining()){
-                System.out.println((char)byteBuffer.get());
+        try{
+            while((count=socketChannel.read(byteBuffer))>0){
+                //bytebuffer 写模式变为读模式
+                byteBuffer.flip();
+                while(byteBuffer.hasRemaining()){
+                    System.out.println((char)byteBuffer.get());
+                }
+                byteBuffer.clear();
             }
-            byteBuffer.clear();
-        }
-        if(count<0){
+            if(count<0){
+                socketChannel.close();
+            }
+        }catch (IOException e){
+            key.cancel();
+            socketChannel.socket().close();
             socketChannel.close();
+            return;
         }
+
     }
 
     private void write(SocketChannel channel,byte[] writeDate) throws IOException{
